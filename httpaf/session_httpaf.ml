@@ -150,26 +150,12 @@ struct
 
   let of_header backend cookie_key header =
     let header = Httpaf.Headers.to_list header in
-    let pp_print_pair pp (label, index) =
-      Format.fprintf pp "@[<hv 1>(%S,@ %S)@]" label index
-    in
-    let s = Format.(asprintf "%a" (pp_print_list (pp_print_pair)) header) in
-    print_endline s;
     try
       let cookie_header =
         ListLabels.find header ~f:(fun (k, _) ->
             match k with "cookie" | "Cookie" -> true | _ -> false)
       in
-      let s = Format.(asprintf "%a" ((pp_print_pair)) cookie_header) in
-      print_endline "HERE";
-      print_endline s;
       let cookies = Cookie.cookies_of_header cookie_header in
-      let pp_print_pair pp (label, index) =
-        Format.fprintf pp "@[<hv 1>(%S,@ %S)@]" label index
-      in
-      let s = Format.(asprintf "%a" (pp_print_list (pp_print_pair)) cookies) in
-      print_endline "THERE";
-      print_endline s;
       let key = List.assoc cookie_key cookies in
       of_key backend key >>|? fun session -> Some session
     with Not_found -> return (Ok None)
