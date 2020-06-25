@@ -9,9 +9,15 @@
  (libraries session-cohttp-lwt))
 
 (executable
+ (name httpaf_lwt_counter)
+ (modules httpaf_lwt_counter)
+ (libraries session-httpaf-lwt session-cookie httpaf-lwt-unix))
+
+(executable
  (name webmachine_async_counter)
  (modules webmachine_async_counter)
- (libraries session-webmachine cohttp-async mirage-crypto-rng mirage-crypto-rng.unix))
+ (libraries session-webmachine cohttp-async mirage-crypto-rng
+   mirage-crypto-rng.unix))
 
 (executable
  (name webmachine_lwt_counter)
@@ -20,5 +26,5 @@
 
 (alias
  (name all)
- (deps cohttp_async_counter.exe cohttp_async_counter.exe
+ (deps cohttp_async_counter.exe cohttp_lwt_counter.exe httpaf_lwt_counter.exe
    webmachine_lwt_counter.exe webmachine_async_counter.exe))

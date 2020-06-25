@@ -131,3 +131,5 @@ let generate ?expiry ?(value=Postgresql.null) (t:t) =
        VALUES ($1, NOW() + CAST($2 AS INTERVAL), $3)"
   in
   key
+
+let encode_key _t key _ = key

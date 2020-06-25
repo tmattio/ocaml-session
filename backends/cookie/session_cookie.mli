@@ -31,68 +31,31 @@
     POSSIBILITY OF SUCH DAMAGE.
   ----------------------------------------------------------------------------*)
 
-open Async
+(** Signed cookie backend using the {!S.Now} signature.
 
-include Session.Lift.Thread_IO(struct
-  include Deferred
+    The default expiry period is one week. *)
 
-  let in_thread f = In_thread.run f
-end)(Session_postgresql)
+include Session.S.Now
+  with type key = string
+   and type value = string
+   and type period = int64
 
+module Signer : sig
+  type t
 
-let connect
-    ?host ?hostaddr ?port ?dbname ?user ?password ?options ?tty ?requiressl
-    ?conninfo ?startonly () =
-  In_thread.run (fun () ->
-    Session_postgresql.connect
-       ?host ?hostaddr ?port ?dbname ?user ?password ?options ?tty ?requiressl
-       ?conninfo ?startonly ())
+  val make : ?salt:string -> string -> t
+  (** [make secret] returns a new signer that will sign values with [secret] *)
 
-let set_default_period t period =
-  Session_postgresql.set_default_period t period
+  val sign : t -> string -> string
+  (** [sign signer value] signs the string [value] with [signer] *)
 
-module Pool = struct
-  type +'a io = 'a Deferred.t
-
-  type t =
-    { pool : Postgresql.connection Throttle.t
-    ; mutable default_period : period
-    }
-
-  type key = string
-  type value = string
-  type period = int64
-
-  let __de_default t = function
-    | None        -> t.default_period
-    | Some expiry -> expiry
-
-  let generate ?expiry ?value t =
-    Throttle.enqueue t.pool (fun conn ->
-      let expiry = __de_default t expiry in
-      generate ~expiry ?value conn)
-
-  let clear t key =
-    Throttle.enqueue t.pool (fun conn ->
-      clear conn key)
-
-  let get t key =
-    Throttle.enqueue t.pool (fun conn ->
-      get conn key)
-
-  let set ?expiry t key value =
-    Throttle.enqueue t.pool (fun conn ->
-      let expiry = __de_default t expiry in
-      set ~expiry conn key value)
-
-  let default_period { default_period; _ } =
-    default_period
-
-  let set_default_period t period =
-    t.default_period <- period
-
-  let of_throttle pool =
-    { pool; default_period = Int64.of_int (60 * 60 * 24 * 7) }
-
-  let encode_key _t key _ = Deferred.return key
+  val unsign : t -> string -> string option
+  (** [unsign signer value] unsigns a signed string [value] with [signer] *)
 end
+
+val create : signer:Signer.t -> unit -> t
+(** [create ~signer ~headers] returns the handle on a new cookie store. *)
+
+val set_default_period : t -> period -> unit
+(** [set_default_period t period] sets the default expiry period of [t]. This
+    will only affect future operations. *)

@@ -52,6 +52,7 @@ module IO(IO:S.IO)(Now:S.Now) = struct
   let clear t key = IO.return (Now.clear t key)
   let get t key = IO.return (Now.get t key)
   let set ?expiry t key value = IO.return (Now.set ?expiry t key value)
+  let encode_key t k v = IO.return (Now.encode_key t k v)
 end
 
 module Thread_IO(IO:S.Thread_IO)(Now:S.Now) = struct
@@ -67,4 +68,5 @@ module Thread_IO(IO:S.Thread_IO)(Now:S.Now) = struct
   let clear t key = IO.in_thread (fun () -> Now.clear t key)
   let get t key = IO.in_thread (fun () -> Now.get t key)
   let set ?expiry t key value = IO.in_thread (fun () -> Now.set ?expiry t key value)
+  let encode_key t k v = IO.in_thread (fun () -> Now.encode_key t k v)
 end

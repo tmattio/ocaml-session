@@ -1,0 +1,6 @@
+(library
+ (name session_cookie)
+ (public_name session-cookie)
+ (libraries mirage-crypto base64 sexplib session)
+ (preprocess
+  (pps ppx_sexp_conv)))

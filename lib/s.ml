@@ -41,6 +41,7 @@
 type error =
   | Not_found   (** The key was not found. *)
   | Not_set     (** The key was found but had no associated value. *)
+  | Not_valid   (** The body of the cookie is not valid (for signed cookies) *)
 
 (** The signature for synchronous backends.
 
@@ -89,6 +90,15 @@ module type Now = sig
       [key] in backend [t] and sets the session to expire [expiry] seconds from
       now. If [expiry] is not provided, the expiry period reported by
       [default_period t] will be used instead. *)
+
+  val encode_key : t -> key -> value * period -> key
+  (** [encode_key t key] creates a cookie body for the session associated
+      to key in backend [t].
+    
+      Generally, the cookie is either contains a nounce (the identifer of the session),
+      in which case, the backend should return the key itself. The cookie can also be
+      a signed value, in which case, [encode_key t key] returns the signed 
+      value associated to [key] in the backend. *)
 end
 
 (** The signature for a blocking computations. *)
@@ -155,4 +165,13 @@ module type Future = sig
       [key] in backend [t] and sets the session to expire [expiry] seconds from
       now. If [expiry] is not provided, the expiry period reported by
       [default_period t] will be used instead. *)
+
+  val encode_key : t -> key -> value * period -> key io
+  (** [encode_key t key] creates a cookie body for the session associated
+      to key in backend [t].
+  
+      Generally, the cookie is either contains a nounce (the identifer of the session),
+      in which case, the backend should return the key itself. The cookie can also be
+      a signed value, in which case, [encode_key t key] returns the signed 
+      value associated to [key] in the backend. *)
 end

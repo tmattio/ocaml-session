@@ -109,3 +109,5 @@ let generate ?expiry ?value (t:t) =
   let key = gensym () in
   set_opt ?expiry t key value >|= fun () ->
   key
+
+let encode_key _t key _ = Lwt.return key

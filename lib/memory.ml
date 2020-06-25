@@ -90,3 +90,5 @@ let generate ?expiry ?value t =
   let key = gensym () in
   _set ?expiry ?value t key;
   key
+
+let encode_key _t key _ = key
